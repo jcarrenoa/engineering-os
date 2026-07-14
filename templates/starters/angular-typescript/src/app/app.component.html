@@ -1,0 +1,5 @@
+<div class="container">
+  <h1>{{ title }}</h1>
+  <button (click)="checkHealth()">GET /health</button>
+  <p *ngIf="status" [class.ok]="ok" [class.err]="!ok">{{ status }}</p>
+</div>
