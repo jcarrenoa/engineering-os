@@ -10,22 +10,31 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  readonly title = '__PROJECT_NAME__';
-  status = '';
-  ok     = false;
+  readonly title   = '__PROJECT_NAME__';
+  readonly stack   = 'Angular';
+  status   = '';
+  response = '';
+  ok       = false;
+  loading  = false;
 
   constructor(private http: HttpClient) {}
 
   checkHealth() {
-    this.status = 'Connecting...';
+    this.loading  = true;
+    this.status   = '';
+    this.response = '';
     this.http.get('/health').subscribe({
       next: (data) => {
-        this.ok     = true;
-        this.status = '✓  ' + JSON.stringify(data);
+        this.ok       = true;
+        this.status   = 'healthy';
+        this.response = JSON.stringify(data, null, 2);
+        this.loading  = false;
       },
       error: (e) => {
-        this.ok     = false;
-        this.status = '✗  ' + e.message;
+        this.ok       = false;
+        this.status   = 'unreachable';
+        this.response = e.message;
+        this.loading  = false;
       },
     });
   }

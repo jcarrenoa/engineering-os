@@ -1,5 +1,78 @@
-<div class="container">
-  <h1>{{ title }}</h1>
-  <button (click)="checkHealth()">GET /health</button>
-  <p *ngIf="status" [class.ok]="ok" [class.err]="!ok">{{ status }}</p>
+<div class="shell">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Engineering OS</span>
+      </div>
+      <span class="project-badge">{{ title }}</span>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="content">
+
+      <!-- Hero -->
+      <section class="hero">
+        <p class="eyebrow">Project</p>
+        <h1 class="hero-title">{{ title }}</h1>
+        <p class="hero-sub">
+          Design for evolution. Build software that survives change.
+        </p>
+      </section>
+
+      <!-- Health Check -->
+      <section class="card">
+        <div class="card-header">
+          <span class="card-label">Backend Status</span>
+          <span class="endpoint">GET /health</span>
+        </div>
+        <div class="card-body">
+          <button class="btn" (click)="checkHealth()" [disabled]="loading">
+            <span *ngIf="!loading">Check Health</span>
+            <span *ngIf="loading" class="spinner"></span>
+          </button>
+
+          <div *ngIf="status" class="result" [class.result--ok]="ok" [class.result--err]="!ok">
+            <div class="result-header">
+              <span class="result-status">{{ ok ? '● HEALTHY' : '● UNREACHABLE' }}</span>
+            </div>
+            <pre class="result-body">{{ response }}</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stack -->
+      <div class="stack">
+        <div class="stack-item">
+          <span class="stack-label">Framework</span>
+          <span class="stack-value">Engineering OS</span>
+        </div>
+        <div class="stack-item">
+          <span class="stack-label">Frontend</span>
+          <span class="stack-value">{{ stack }}</span>
+        </div>
+        <div class="stack-item">
+          <span class="stack-label">Architecture</span>
+          <span class="stack-value">MVVM + Clean</span>
+        </div>
+        <div class="stack-item">
+          <span class="stack-label">Backend</span>
+          <span class="stack-value">:8000</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    Built with <span class="footer-brand">Engineering OS</span>
+    &nbsp;·&nbsp;
+    <a class="footer-link" href="https://github.com/jcarrenoa" target="_blank">github.com/jcarrenoa</a>
+  </footer>
+
 </div>
