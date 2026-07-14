@@ -5,6 +5,9 @@ export default defineConfig({
   plugins: [vue()],
   resolve: { alias: { '@': '/src' } },
   server: {
-    proxy: { '/health': 'http://localhost:8000' },
+    proxy: {
+      '/health': 'http://localhost:8000',
+      '/api':    'http://localhost:8000',
+    },
   },
 });
