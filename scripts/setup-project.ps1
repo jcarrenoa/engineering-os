@@ -132,6 +132,13 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# ── UTF-8 without BOM writer (PowerShell 5.1 -Encoding utf8 adds BOM, which breaks JSON) ──
+
+function Write-Utf8NoBom([string]$Path, [string]$Content) {
+    $enc = [System.Text.UTF8Encoding]::new($false)
+    [System.IO.File]::WriteAllText($Path, $Content, $enc)
+}
+
 # ── Resolve paths ──────────────────────────────────────────────────────────────
 
 $EngineeringOsRoot = Split-Path $PSScriptRoot -Parent
@@ -540,7 +547,7 @@ $ProjectType
 - Architecture: $baDisplay
 "@
 
-Set-Content -Path (Join-Path $StackConfigDir "stack.md") -Value $StackContent -Encoding utf8 -NoNewline
+Write-Utf8NoBom (Join-Path $StackConfigDir "stack.md") $StackContent
 
 Write-Host "  [OK] .engineering-os/config/stack.md written" -ForegroundColor Green
 
@@ -601,7 +608,7 @@ foreach ($tmpl in $templatesToCopy) {
                 $ps = Get-Content $pubspecPath -Raw -Encoding utf8
                 if ($ps -notmatch '\bhttp\b') {
                     $ps = $ps -replace '(?m)(^dependencies:\s*\r?\n)', "`$1  http: ^1.2.1`n"
-                    Set-Content $pubspecPath $ps -Encoding utf8 -NoNewline
+                    Write-Utf8NoBom $pubspecPath $ps
                 }
                 Remove-Item $tempFlutter -Recurse -Force -ErrorAction SilentlyContinue
                 Write-Host "  [OK] Template: $tmpl (flutter create)" -ForegroundColor Green
@@ -645,7 +652,7 @@ foreach ($scanRoot in $scanRoots) {
         $content = Get-Content $_.FullName -Raw -Encoding utf8 -ErrorAction SilentlyContinue
         if ($content -and $content -match '__PROJECT_NAME__') {
             $replacement = if ($_.Name -eq 'pubspec.yaml') { $dartSafeName } else { $ProjectName }
-            Set-Content -Path $_.FullName -Value ($content -replace '__PROJECT_NAME__', $replacement) -Encoding utf8 -NoNewline
+            Write-Utf8NoBom $_.FullName ($content -replace '__PROJECT_NAME__', $replacement)
         }
       }
 
@@ -684,7 +691,7 @@ $VisionContent = Get-Content $VisionPath -Raw -Encoding utf8
 
 if ($VisionContent -match "\[Name of the project\]") {
     $VisionContent = $VisionContent -replace "\[Name of the project\]", $ProjectName
-    Set-Content -Path $VisionPath -Value $VisionContent -Encoding utf8 -NoNewline
+    Write-Utf8NoBom $VisionPath $VisionContent
     Write-Host "  [OK] handbook/00-vision.md pre-filled" -ForegroundColor Green
 }
 
@@ -697,7 +704,7 @@ $ClaudeMdContent = $ClaudeMdContent -replace "(?<![`.\w])agents/",    ".engineer
 $ClaudeMdContent = $ClaudeMdContent -replace "(?<![`.\w])workflows/", ".engineering-os/workflows/"
 $ClaudeMdContent = $ClaudeMdContent -replace "(?<![`.\w])templates/", ".engineering-os/templates/"
 
-Set-Content -Path (Join-Path $ProjectRoot "CLAUDE.md") -Value $ClaudeMdContent -Encoding utf8 -NoNewline
+Write-Utf8NoBom (Join-Path $ProjectRoot "CLAUDE.md") $ClaudeMdContent
 
 Write-Host "  [OK] CLAUDE.md updated" -ForegroundColor Green
 
@@ -716,7 +723,7 @@ foreach ($File in $CommandFiles) {
     $Content = $Content -replace "(?<![`.\w])agents/",    ".engineering-os/agents/"
     $Content = $Content -replace "(?<![`.\w])templates/", ".engineering-os/templates/"
 
-    Set-Content -Path (Join-Path $CommandsDest $File.Name) -Value $Content -Encoding utf8 -NoNewline
+    Write-Utf8NoBom (Join-Path $CommandsDest $File.Name) $Content
 }
 
 Write-Host "  [OK] .claude/commands/ updated" -ForegroundColor Green
@@ -740,13 +747,14 @@ $GitignoreEntry = ".engineering-os/"
 if (Test-Path $GitignorePath) {
     $GitignoreContent = Get-Content $GitignorePath -Raw -Encoding utf8
     if ($GitignoreContent -notmatch [regex]::Escape($GitignoreEntry)) {
-        Add-Content -Path $GitignorePath -Value "`n$GitignoreEntry" -Encoding utf8
+        $existing = [System.IO.File]::ReadAllText($GitignorePath)
+        Write-Utf8NoBom $GitignorePath ($existing.TrimEnd() + "`n$GitignoreEntry`n")
         Write-Host "  [OK] .gitignore updated (added .engineering-os/)" -ForegroundColor Green
     } else {
         Write-Host "  [OK] .gitignore already contains .engineering-os/" -ForegroundColor DarkGray
     }
 } else {
-    $GitignoreEntry | Set-Content -Path $GitignorePath -Encoding utf8
+    Write-Utf8NoBom $GitignorePath $GitignoreEntry
     Write-Host "  [OK] .gitignore created" -ForegroundColor Green
 }
 
